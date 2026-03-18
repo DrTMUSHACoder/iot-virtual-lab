@@ -1,7 +1,6 @@
 
 import React, { useMemo } from 'react';
 import { useGLTF } from '@react-three/drei';
-import * as THREE from 'three';
 import { Pin } from './Pin';
 
 /*
