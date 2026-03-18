@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>NeuroSurge — 3D Brain Surgical Viewer</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+  :root{
+    --bg:#060a10;
+    --panel:#0c1420;
+    --panel2:#101c2e;
+    --border:#1a2d45;
+    --accent:#00d4ff;
+    --accent2:#7c3aff;
+    --red:#ff4757;
+    --green:#00f5a0;
+    --yellow:#ffd32a;
+    --text:#e0eeff;
+    --text2:#6b8aad;
+  }
+
+  body{
+    background:var(--bg);
+    font-family:'Inter',sans-serif;
+    color:var(--text);
+    height:100vh;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+  }
+
+  /* ── HEADER ── */
+  header{
+    display:flex;
+    align-items:center;
+    gap:16px;
+    padding:10px 20px;
+    background:var(--panel);
+    border-bottom:1px solid var(--border);
+    z-index:10;
+    flex-shrink:0;
+  }
+  .logo{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-size:18px;
+    font-weight:700;
+    letter-spacing:1px;
+    color:var(--accent);
+  }
+  .logo-icon{
+    width:32px;height:32px;
+    background:linear-gradient(135deg,var(--accent2),var(--accent));
+    border-radius:8px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:16px;
+  }
+  .badge{
+    font-size:10px;
+    background:rgba(0,212,255,0.15);
+    border:1px solid var(--accent);
+    color:var(--accent);
+    padding:2px 8px;
+    border-radius:20px;
+    font-weight:600;
+    letter-spacing:.5px;
+  }
+
+  .header-info{
+    margin-left:auto;
+    display:flex;gap:20px;
+    align-items:center;
+  }
+  .info-item{
+    display:flex;flex-direction:column;
+    align-items:flex-end;
+    font-size:11px;
+    color:var(--text2);
+  }
+  .info-item strong{color:var(--text);font-size:12px;}
+
+  .vital{
+    display:flex;align-items:center;gap:6px;
+    font-size:11px;
+  }
+  .vital-dot{
+    width:7px;height:7px;border-radius:50%;
+    background:var(--green);
+    box-shadow:0 0 6px var(--green);
+    animation:pulse-dot 1.5s infinite;
+  }
+  @keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.3}}
+
+  /* ── MAIN LAYOUT ── */
+  .main{
+    display:flex;
+    flex:1;
+    overflow:hidden;
+  }
+
+  /* ── LEFT SIDEBAR ── */
+  .sidebar{
+    width:220px;
+    background:var(--panel);
+    border-right:1px solid var(--border);
+    display:flex;flex-direction:column;
+    flex-shrink:0;
+    overflow-y:auto;
+  }
+  .sidebar::-webkit-scrollbar{width:4px}
+  .sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+
+  .sidebar-section{
+    padding:14px;
+    border-bottom:1px solid var(--border);
+  }
+  .sidebar-title{
+    font-size:9px;
+    font-weight:700;
+    letter-spacing:1.5px;
+    color:var(--text2);
+    text-transform:uppercase;
+    margin-bottom:10px;
+  }
+
+  .lobe-btn{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    width:100%;
+    padding:7px 10px;
+    border-radius:6px;
+    border:1px solid transparent;
+    background:transparent;
+    color:var(--text);
+    font-size:12px;
+    cursor:pointer;
+    margin-bottom:4px;
+    transition:all .2s;
+    text-align:left;
+    font-family:'Inter',sans-serif;
+  }
+  .lobe-btn:hover{background:rgba(255,255,255,.05);border-color:var(--border)}
+  .lobe-btn.active{
+    background:rgba(0,212,255,.1);
+    border-color:var(--accent);
+    color:var(--accent);
+  }
+  .lobe-dot{
+    width:10px;height:10px;
+    border-radius:50%;
+    flex-shrink:0;
+  }
+
+  .tool-btn{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    width:100%;
+    padding:8px 10px;
+    border-radius:6px;
+    border:1px solid var(--border);
+    background:var(--panel2);
+    color:var(--text);
+    font-size:12px;
+    cursor:pointer;
+    margin-bottom:6px;
+    transition:all .2s;
+    font-family:'Inter',sans-serif;
+  }
+  .tool-btn:hover{border-color:var(--accent);color:var(--accent)}
+  .tool-btn.active{
+    background:rgba(124,58,255,.15);
+    border-color:var(--accent2);
+    color:var(--accent2);
+  }
+
+  .slider-row{
+    display:flex;align-items:center;justify-content:space-between;
+    margin-bottom:10px;
+  }
+  .slider-label{font-size:11px;color:var(--text2)}
+  .slider-val{font-size:11px;font-family:'JetBrains Mono';color:var(--accent)}
+
+  input[type=range]{
+    width:100%;
+    height:4px;
+    -webkit-appearance:none;
+    background:var(--border);
+    border-radius:2px;
+    outline:none;
+    margin-bottom:2px;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;
+    width:14px;height:14px;
+    border-radius:50%;
+    background:var(--accent);
+    cursor:pointer;
+    box-shadow:0 0 6px var(--accent);
+  }
+
+  .checkbox-row{
+    display:flex;align-items:center;gap:8px;
+    cursor:pointer;
+    font-size:12px;
+    margin-bottom:8px;
+    user-select:none;
+  }
+  .checkbox-row input{accent-color:var(--accent)}
+
+  /* ── CANVAS AREA ── */
+  .canvas-wrap{
+    flex:1;
+    position:relative;
+    background:radial-gradient(ellipse at center, #0a1628 0%, #060a10 80%);
+  }
+
+  #brainCanvas{
+    width:100%;height:100%;
+    display:block;
+  }
+
+  .canvas-overlay{
+    position:absolute;
+    top:0;left:0;right:0;bottom:0;
+    pointer-events:none;
+  }
+
+  /* Crosshair */
+  .crosshair{
+    position:absolute;
+    top:50%;left:50%;
+    transform:translate(-50%,-50%);
+    width:30px;height:30px;
+  }
+  .crosshair::before,.crosshair::after{
+    content:'';
+    position:absolute;
+    background:rgba(0,212,255,.4);
+  }
+  .crosshair::before{top:14px;left:0;right:0;height:2px}
+  .crosshair::after{left:14px;top:0;bottom:0;width:2px}
+
+  /* Region label popup */
+  .region-tooltip{
+    position:absolute;
+    background:rgba(6,10,16,.9);
+    border:1px solid var(--accent);
+    border-radius:8px;
+    padding:8px 12px;
+    font-size:12px;
+    color:var(--accent);
+    white-space:nowrap;
+    display:none;
+    pointer-events:none;
+    backdrop-filter:blur(8px);
+  }
+
+  /* Bottom info bar */
+  .info-bar{
+    position:absolute;
+    bottom:12px;left:50%;
+    transform:translateX(-50%);
+    display:flex;gap:16px;
+    background:rgba(12,20,32,.85);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:8px 20px;
+    font-size:11px;
+    color:var(--text2);
+    backdrop-filter:blur(10px);
+  }
+  .info-bar span b{color:var(--text)}
+
+  /* Corner overlay text */
+  .corner-label{
+    position:absolute;
+    font-size:10px;
+    font-family:'JetBrains Mono';
+    color:rgba(0,212,255,.5);
+    letter-spacing:.5px;
+  }
+  .corner-label.tl{top:12px;left:12px}
+  .corner-label.tr{top:12px;right:12px;text-align:right}
+
+  /* ── RIGHT PANEL ── */
+  .right-panel{
+    width:200px;
+    background:var(--panel);
+    border-left:1px solid var(--border);
+    display:flex;flex-direction:column;
+    flex-shrink:0;
+    overflow-y:auto;
+  }
+
+  .vitals-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+    padding:12px;
+  }
+  .vital-card{
+    background:var(--panel2);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:8px;
+    text-align:center;
+  }
+  .vital-card .vc-label{font-size:9px;color:var(--text2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
+  .vital-card .vc-val{font-size:16px;font-weight:700;font-family:'JetBrains Mono'}
+  .vital-card .vc-unit{font-size:9px;color:var(--text2)}
+  .vital-card.green .vc-val{color:var(--green)}
+  .vital-card.blue .vc-val{color:var(--accent)}
+  .vital-card.yellow .vc-val{color:var(--yellow)}
+  .vital-card.red .vc-val{color:var(--red)}
+
+  /* ECG mini chart */
+  .ecg-wrap{
+    padding:10px 12px;
+    border-bottom:1px solid var(--border);
+  }
+  .ecg-title{font-size:9px;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+  #ecgCanvas{width:100%;height:50px;display:block}
+
+  /* Annotations list */
+  .ann-list{
+    padding:12px;
+    flex:1;
+  }
+  .ann-item{
+    display:flex;
+    align-items:flex-start;
+    gap:8px;
+    margin-bottom:10px;
+    font-size:11px;
+  }
+  .ann-icon{
+    font-size:14px;
+    flex-shrink:0;
+    margin-top:1px;
+  }
+  .ann-text{color:var(--text2);line-height:1.4}
+  .ann-text strong{color:var(--text);display:block}
+
+  /* ── SCAN LINES EFFECT ── */
+  .scanlines{
+    position:absolute;top:0;left:0;right:0;bottom:0;
+    background-image:repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,.05) 2px,
+      rgba(0,0,0,.05) 4px
+    );
+    pointer-events:none;
+    z-index:2;
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    <div class="logo-icon">🧠</div>
+    NeuroSurge
+  </div>
+  <div class="badge">3D SURGICAL VIEWER v2.4</div>
+  <div style="display:flex;gap:8px;margin-left:16px">
+    <div class="vital">
+      <div class="vital-dot"></div>
+      <span style="font-size:11px;color:#00f5a0">SYSTEM ONLINE</span>
+    </div>
+  </div>
+  <div class="header-info">
+    <div class="info-item">
+      <span>Patient ID</span>
+      <strong>NS-2026-0318</strong>
+    </div>
+    <div class="info-item">
+      <span>Scan Type</span>
+      <strong>MRI T2-Weighted</strong>
+    </div>
+    <div class="info-item">
+      <span>Resolution</span>
+      <strong>0.5mm Voxel</strong>
+    </div>
+    <div class="info-item">
+      <span>Surgeon</span>
+      <strong>Dr. A. Kumar</strong>
+    </div>
+  </div>
+</header>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- LEFT SIDEBAR -->
+  <div class="sidebar">
+
+    <!-- Brain Regions -->
+    <div class="sidebar-section">
+      <div class="sidebar-title">Brain Regions</div>
+      <button class="lobe-btn active" onclick="highlightLobe('all')">
+        <div class="lobe-dot" style="background:#ccc"></div> All Regions
+      </button>
+      <button class="lobe-btn" onclick="highlightLobe('frontal')">
+        <div class="lobe-dot" style="background:#ff6b6b"></div> Frontal Lobe
+      </button>
+      <button class="lobe-btn" onclick="highlightLobe('parietal')">
+        <div class="lobe-dot" style="background:#ffd93d"></div> Parietal Lobe
+      </button>
+      <button class="lobe-btn" onclick="highlightLobe('temporal')">
+        <div class="lobe-dot" style="background:#6bcb77"></div> Temporal Lobe
+      </button>
+      <button class="lobe-btn" onclick="highlightLobe('occipital')">
+        <div class="lobe-dot" style="background:#4d96ff"></div> Occipital Lobe
+      </button>
+      <button class="lobe-btn" onclick="highlightLobe('cerebellum')">
+        <div class="lobe-dot" style="background:#c77dff"></div> Cerebellum
+      </button>
+      <button class="lobe-btn" onclick="highlightLobe('brainstem')">
+        <div class="lobe-dot" style="background:#ff9a3c"></div> Brain Stem
+      </button>
+    </div>
+
+    <!-- Surgical Tools -->
+    <div class="sidebar-section">
+      <div class="sidebar-title">Surgical Tools</div>
+      <button class="tool-btn active" id="tool-rotate" onclick="setTool('rotate')">🔄 Rotate View</button>
+      <button class="tool-btn" id="tool-measure" onclick="setTool('measure')">📏 Measure</button>
+      <button class="tool-btn" id="tool-mark" onclick="setTool('mark')">📍 Mark Region</button>
+      <button class="tool-btn" id="tool-xray" onclick="toggleXray()">💠 X-Ray Mode</button>
+      <button class="tool-btn" id="tool-cut" onclick="toggleCut()">🔪 Cross-Section</button>
+    </div>
+
+    <!-- View Controls -->
+    <div class="sidebar-section">
+      <div class="sidebar-title">View Controls</div>
+
+      <div class="slider-row">
+        <span class="slider-label">Opacity</span>
+        <span class="slider-val" id="opacityVal">100%</span>
+      </div>
+      <input type="range" min="20" max="100" value="100" oninput="setOpacity(this.value)" style="margin-bottom:12px"/>
+
+      <div class="slider-row">
+        <span class="slider-label">Slice Y</span>
+        <span class="slider-val" id="sliceVal">OFF</span>
+      </div>
+      <input type="range" min="0" max="100" value="0" oninput="setSlice(this.value)" style="margin-bottom:12px"/>
+
+      <div class="slider-row">
+        <span class="slider-label">Zoom</span>
+        <span class="slider-val" id="zoomVal">1.0×</span>
+      </div>
+      <input type="range" min="5" max="30" value="12" oninput="setZoom(this.value)" style="margin-bottom:12px"/>
+
+      <label class="checkbox-row">
+        <input type="checkbox" checked onchange="toggleWireframe(this.checked)"/>
+        Show Wireframe
+      </label>
+      <label class="checkbox-row">
+        <input type="checkbox" checked onchange="toggleSulci(this.checked)"/>
+        Show Sulci Lines
+      </label>
+      <label class="checkbox-row">
+        <input type="checkbox" onchange="toggleBloodVessels(this.checked)"/>
+        Blood Vessels
+      </label>
+    </div>
+
+  </div><!-- /sidebar -->
+
+  <!-- 3D CANVAS -->
+  <div class="canvas-wrap">
+    <canvas id="brainCanvas"></canvas>
+    <div class="scanlines"></div>
+    <div class="canvas-overlay">
+      <div class="corner-label tl">
+        3D RENDER · REAL-TIME<br/>
+        <span id="fpsLabel">60 FPS</span>
+      </div>
+      <div class="corner-label tr">
+        ZOOM: <span id="zoomLabel">1.0×</span><br/>
+        Drag to rotate · Scroll to zoom
+      </div>
+      <div class="crosshair"></div>
+      <div class="region-tooltip" id="regionTip"></div>
+      <div class="info-bar">
+        <span><b>Volume:</b> 1,247 cm³</span>
+        <span><b>Mass:</b> ~1,300 g</span>
+        <span><b>Gyri:</b> 36 identified</span>
+        <span><b>Sulci Depth:</b> avg 8.2mm</span>
+        <span><b>Tumor Risk:</b> <b style="color:#00f5a0">LOW</b></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="right-panel">
+    <div class="sidebar-section" style="padding:12px">
+      <div class="sidebar-title">Patient Vitals</div>
+    </div>
+    <div class="vitals-grid">
+      <div class="vital-card green">
+        <div class="vc-label">Heart Rate</div>
+        <div class="vc-val" id="hrVal">72</div>
+        <div class="vc-unit">BPM</div>
+      </div>
+      <div class="vital-card blue">
+        <div class="vc-label">SpO₂</div>
+        <div class="vc-val" id="spo2Val">98</div>
+        <div class="vc-unit">%</div>
+      </div>
+      <div class="vital-card yellow">
+        <div class="vc-label">BP</div>
+        <div class="vc-val" id="bpVal">120</div>
+        <div class="vc-unit">mmHg</div>
+      </div>
+      <div class="vital-card blue">
+        <div class="vc-label">ICP</div>
+        <div class="vc-val" id="icpVal">12</div>
+        <div class="vc-unit">mmHg</div>
+      </div>
+    </div>
+
+    <!-- ECG canvas -->
+    <div class="ecg-wrap">
+      <div class="ecg-title">ECG — Lead II</div>
+      <canvas id="ecgCanvas" height="50"></canvas>
+    </div>
+
+    <!-- Surgical annotations -->
+    <div class="ann-list">
+      <div class="sidebar-title">Surgical Notes</div>
+      <div class="ann-item">
+        <div class="ann-icon">📍</div>
+        <div class="ann-text">
+          <strong>Target Region</strong>
+          Frontal lobe — lateral sulcus, 3.2cm from midline
+        </div>
+      </div>
+      <div class="ann-item">
+        <div class="ann-icon">⚠️</div>
+        <div class="ann-text">
+          <strong>Critical Zone</strong>
+          Broca's area — avoid retraction
+        </div>
+      </div>
+      <div class="ann-item">
+        <div class="ann-icon">🩸</div>
+        <div class="ann-text">
+          <strong>Vasculature</strong>
+          Middle cerebral artery — 2mm proximity
+        </div>
+      </div>
+      <div class="ann-item">
+        <div class="ann-icon">✅</div>
+        <div class="ann-text">
+          <strong>Pre-op Cleared</strong>
+          Anaesthesia ready
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script>
+// ─────────────────────────────────────────────────────────────────────────────
+//  BRAIN 3D VIEWER  —  Three.js procedural brain
+// ─────────────────────────────────────────────────────────────────────────────
+
+const canvas = document.getElementById('brainCanvas');
+const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.0;
+
+const scene = new THREE.Scene();
+scene.background = null;
+scene.fog = new THREE.FogExp2(0x060a10, 0.15);
+
+const camera = new THREE.PerspectiveCamera(40, 1, 0.01, 100);
+camera.position.set(0, 0.3, 3.0);
+
+// ── Resize ──
+function onResize(){
+  const w = canvas.parentElement.clientWidth;
+  const h = canvas.parentElement.clientHeight;
+  renderer.setSize(w, h);
+  camera.aspect = w/h;
+  camera.updateProjectionMatrix();
+}
+new ResizeObserver(onResize).observe(canvas.parentElement);
+
+// ── Lights ──
+const ambLight = new THREE.AmbientLight(0x223355, 0.8);
+scene.add(ambLight);
+
+const dirLight = new THREE.DirectionalLight(0xffffff, 2.5);
+dirLight.position.set(3,5,3);
+dirLight.castShadow = true;
+scene.add(dirLight);
+
+const fillLight = new THREE.DirectionalLight(0x4499ff, 0.6);
+fillLight.position.set(-3,0,-2);
+scene.add(fillLight);
+
+const rimLight = new THREE.PointLight(0x00d4ff, 1.5, 8);
+rimLight.position.set(-2,1,-2);
+scene.add(rimLight);
+
+const bottomLight = new THREE.PointLight(0x7c3aff, 0.8, 6);
+bottomLight.position.set(0,-2,0);
+scene.add(bottomLight);
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  BUILD PROCEDURAL BRAIN
+// ─────────────────────────────────────────────────────────────────────────────
+
+const brainGroup = new THREE.Group();
+scene.add(brainGroup);
+
+// Main brain material
+const brainMat = new THREE.MeshStandardMaterial({
+  color:0xd4a090,
+  roughness:0.75,
+  metalness:0.05,
+  side: THREE.DoubleSide,
+});
+
+// Wireframe overlay
+const wireMat = new THREE.MeshBasicMaterial({
+  color:0x00d4ff,
+  wireframe:true,
+  opacity:0.06,
+  transparent:true,
+});
+
+// ── Helper: bump-wave displacement ──
+function displaceBrain(geo, seed){
+  const pos = geo.attributes.position;
+  for(let i=0;i<pos.count;i++){
+    const x=pos.getX(i), y=pos.getY(i), z=pos.getZ(i);
+    const len = Math.sqrt(x*x+y*y+z*z)||1;
+    const nx=x/len, ny=y/len, nz=z/len;
+    // Multi-octave gyri bumps
+    const bump =
+      0.10*Math.sin(nx*12+seed    )*Math.cos(ny*10      ) +
+      0.07*Math.sin(nz*14+seed+1  )*Math.cos(nx*9+0.5   ) +
+      0.05*Math.sin(ny*16+seed*0.7)*Math.cos(nz*13+seed*1.3) +
+      0.03*Math.sin(nx*22+ny*18   )*Math.cos(nz*20      ) +
+      0.02*Math.cos(nz*28+nx*24   );
+    const r = len + bump;
+    pos.setXYZ(i, nx*r, ny*r, nz*r);
+  }
+  pos.needsUpdate=true;
+  geo.computeVertexNormals();
+}
+
+// ── Left hemisphere ──
+const leftGeo = new THREE.SphereGeometry(0.68, 96, 80);
+// Flatten bottom, elongate front
+const lp = leftGeo.attributes.position;
+for(let i=0;i<lp.count;i++){
+  let y=lp.getY(i);
+  let x=lp.getX(i);
+  let z=lp.getZ(i);
+  // Flatten base
+  if(y<-0.3) y = -0.3 + (y+0.3)*0.3;
+  // Elongate front (occipital extension)
+  if(z<0) z*=1.25;
+  // Slightly indent top middle
+  if(x>-0.05&&x<0.05&&y>0.3) y*=0.9;
+  lp.setXYZ(i,x,y,z);
+}
+lp.needsUpdate=true;
+displaceBrain(leftGeo, 0);
+const leftMesh = new THREE.Mesh(leftGeo, brainMat.clone());
+leftMesh.position.set(-0.31, 0, 0);
+leftMesh.castShadow=true;
+leftMesh.receiveShadow=true;
+brainGroup.add(leftMesh);
+
+const leftWire = new THREE.Mesh(leftGeo.clone(), wireMat.clone());
+leftWire.position.copy(leftMesh.position);
+brainGroup.add(leftWire);
+
+// ── Right hemisphere ──
+const rightGeo = new THREE.SphereGeometry(0.66, 96, 80);
+const rp = rightGeo.attributes.position;
+for(let i=0;i<rp.count;i++){
+  let y=rp.getY(i);
+  let x=rp.getX(i);
+  let z=rp.getZ(i);
+  if(y<-0.3) y=-0.3+(y+0.3)*0.3;
+  if(z<0) z*=1.22;
+  if(x>-0.05&&x<0.05&&y>0.3) y*=0.9;
+  rp.setXYZ(i,x,y,z);
+}
+rp.needsUpdate=true;
+displaceBrain(rightGeo, 3.7);
+const rightMesh = new THREE.Mesh(rightGeo, brainMat.clone());
+rightMesh.position.set(0.31, 0, 0);
+rightMesh.castShadow=true;
+rightMesh.receiveShadow=true;
+brainGroup.add(rightMesh);
+
+const rightWire = new THREE.Mesh(rightGeo.clone(), wireMat.clone());
+rightWire.position.copy(rightMesh.position);
+brainGroup.add(rightWire);
+
+// ── Corpus callosum (inter-hemisphere connector) ──
+const ccGeo = new THREE.TorusGeometry(0.2, 0.07, 16, 40, Math.PI);
+const ccMat = new THREE.MeshStandardMaterial({color:0xc49080, roughness:0.8, metalness:0.0});
+const ccMesh = new THREE.Mesh(ccGeo, ccMat);
+ccMesh.rotation.z = Math.PI/2;
+ccMesh.position.set(0, 0.08, 0.05);
+brainGroup.add(ccMesh);
+
+// ── Cerebellum ──
+const cbGeo = new THREE.SphereGeometry(0.34, 64, 48);
+const cbp = cbGeo.attributes.position;
+for(let i=0;i<cbp.count;i++){
+  const x=cbp.getX(i);
+  const y=cbp.getY(i);
+  const z=cbp.getZ(i);
+  const bump = 0.05*Math.sin(y*20+x*18)+0.03*Math.cos(z*22+x*16);
+  const len=Math.sqrt(x*x+y*y+z*z)||1;
+  const r=len+bump;
+  cbp.setXYZ(i, x/len*r, y/len*r, z/len*r);
+}
+cbp.needsUpdate=true;
+cbGeo.computeVertexNormals();
+const cbMat = new THREE.MeshStandardMaterial({color:0xb88070, roughness:0.8, metalness:0.0});
+const cbMesh = new THREE.Mesh(cbGeo, cbMat);
+cbMesh.position.set(0, -0.55, -0.52);
+cbMesh.scale.set(1.5, 0.65, 0.8);
+cbMesh.castShadow=true;
+brainGroup.add(cbMesh);
+
+// ── Brain stem ──
+const bsGeo = new THREE.CylinderGeometry(0.12, 0.09, 0.55, 20);
+const bsMat = new THREE.MeshStandardMaterial({color:0xc08868, roughness:0.8});
+const bsMesh = new THREE.Mesh(bsGeo, bsMat);
+bsMesh.position.set(0, -0.80, -0.15);
+bsMesh.rotation.z=0.08;
+bsMesh.castShadow=true;
+brainGroup.add(bsMesh);
+
+// ── Blood vessels (red lines) ──
+const vesselGroup = new THREE.Group();
+brainGroup.add(vesselGroup);
+vesselGroup.visible = false;
+
+function addVessel(pts, thick=0.006, color=0xff3333){
+  const curve = new THREE.CatmullRomCurve3(pts.map(p=>new THREE.Vector3(...p)));
+  const geo = new THREE.TubeGeometry(curve, 20, thick, 6, false);
+  const mat = new THREE.MeshStandardMaterial({color, roughness:0.5, metalness:0.2, emissive:color, emissiveIntensity:0.3});
+  vesselGroup.add(new THREE.Mesh(geo, mat));
+}
+addVessel([[-0.3,0.5,0.1],[-0.4,0.3,0.3],[-0.5,0.0,0.2],[-0.4,-0.3,0.0]]);
+addVessel([[0.3,0.5,0.1],[0.4,0.3,0.3],[0.5,0.0,0.2],[0.4,-0.3,0.0]]);
+addVessel([[0,0.6,0.2],[0.2,0.4,0.5],[0.3,0.1,0.6],[0.2,-0.2,0.4]]);
+addVessel([[0,0.6,0.2],[-0.2,0.4,0.5],[-0.3,0.1,0.6],[-0.2,-0.2,0.4]]);
+addVessel([[-0.1,0.2,-0.3],[-0.3,0.0,-0.5],[-0.4,-0.3,-0.4]], 0.008, 0xcc2222);
+
+// ── Surgical marker pin ──
+const pinGeo = new THREE.SphereGeometry(0.04, 12, 8);
+const pinMat = new THREE.MeshStandardMaterial({color:0xffff00, emissive:0xffaa00, emissiveIntensity:1.5, roughness:0.3});
+const pinMesh = new THREE.Mesh(pinGeo, pinMat);
+pinMesh.position.set(-0.3, 0.55, 0.4);
+brainGroup.add(pinMesh);
+
+// Pin pulse ring
+const ringGeo = new THREE.RingGeometry(0.05, 0.07, 20);
+const ringMat = new THREE.MeshBasicMaterial({color:0xffaa00, side:THREE.DoubleSide, transparent:true, opacity:0.8, depthWrite:false});
+const ringMesh = new THREE.Mesh(ringGeo, ringMat);
+ringMesh.position.copy(pinMesh.position);
+ringMesh.rotation.x=-Math.PI/2;
+brainGroup.add(ringMesh);
+
+// ── Grid floor ──
+const gridHelper = new THREE.GridHelper(6, 30, 0x1a2d45, 0x0e1a28);
+gridHelper.position.y = -1.3;
+scene.add(gridHelper);
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  LOBE COLORS
+// ─────────────────────────────────────────────────────────────────────────────
+const lobeColors = {
+  all:      {left:0xd4a090, right:0xd4a090},
+  frontal:  {left:0xff6b6b, right:0xff8585},
+  parietal: {left:0xffd93d, right:0xffe566},
+  temporal: {left:0x6bcb77, right:0x85df90},
+  occipital:{left:0x4d96ff, right:0x6aaeff},
+  cerebellum:{left:0xc77dff, right:0xd999ff},
+  brainstem:{left:0xff9a3c, right:0xffb060},
+};
+
+let currentLobe='all';
+window.highlightLobe = function(lobe){
+  currentLobe=lobe;
+  const c = lobeColors[lobe]||lobeColors.all;
+  leftMesh.material.color.setHex(c.left);
+  rightMesh.material.color.setHex(c.right);
+  if(lobe==='cerebellum'){cbMesh.material.color.setHex(0xc77dff);}
+  else{cbMesh.material.color.setHex(0xb88070);}
+  if(lobe==='brainstem'){bsMesh.material.color.setHex(0xff9a3c);}
+  else{bsMesh.material.color.setHex(0xc08868);}
+  document.querySelectorAll('.lobe-btn').forEach(b=>b.classList.remove('active'));
+  event.target.classList.add('active');
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  TOOLS
+// ─────────────────────────────────────────────────────────────────────────────
+let xrayMode = false;
+let cutMode  = false;
+let sliceY   = null;
+
+window.setTool = function(t){
+  document.querySelectorAll('.tool-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tool-'+t).classList.add('active');
+};
+
+window.toggleXray = function(){
+  xrayMode=!xrayMode;
+  const btn=document.getElementById('tool-xray');
+  btn.classList.toggle('active',xrayMode);
+  const op=xrayMode?0.35:1.0;
+  leftMesh.material.transparent=xrayMode;
+  leftMesh.material.opacity=op;
+  rightMesh.material.transparent=xrayMode;
+  rightMesh.material.opacity=op;
+};
+
+window.toggleCut = function(){
+  cutMode=!cutMode;
+  const btn=document.getElementById('tool-cut');
+  btn.classList.toggle('active',cutMode);
+  if(cutMode){
+    const plane = new THREE.Plane(new THREE.Vector3(0,1,0), 0.0);
+    renderer.clippingPlanes=[plane];
+    renderer.localClippingEnabled=true;
+  } else {
+    renderer.clippingPlanes=[];
+    renderer.localClippingEnabled=false;
+  }
+};
+
+window.toggleWireframe = function(v){
+  brainGroup.children.forEach(c=>{
+    if(c.material&&c.material.wireframe!==undefined&&c.material.wireframe===false||
+       (c.material&&c.material.wireframe===true)){
+      // skip non-wire meshes
+    }
+  });
+  leftWire.visible=v;
+  rightWire.visible=v;
+};
+
+window.toggleSulci = function(v){
+  leftWire.material.opacity = v?0.06:0;
+  rightWire.material.opacity = v?0.06:0;
+};
+
+window.toggleBloodVessels = function(v){
+  vesselGroup.visible=v;
+};
+
+window.setOpacity = function(val){
+  const op=parseInt(val)/100;
+  document.getElementById('opacityVal').textContent=val+'%';
+  leftMesh.material.transparent=op<1;
+  leftMesh.material.opacity=op;
+  rightMesh.material.transparent=op<1;
+  rightMesh.material.opacity=op;
+  cbMesh.material.transparent=op<1;
+  cbMesh.material.opacity=op;
+  bsMesh.material.transparent=op<1;
+  bsMesh.material.opacity=op;
+};
+
+window.setSlice = function(val){
+  const lbl=document.getElementById('sliceVal');
+  if(val==0){
+    lbl.textContent='OFF';
+    renderer.clippingPlanes=[];
+    renderer.localClippingEnabled=false;
+  } else {
+    const y = (val/100)*1.4 - 0.7;
+    lbl.textContent=val+'%';
+    const plane = new THREE.Plane(new THREE.Vector3(0,1,0), -y);
+    renderer.clippingPlanes=[plane];
+    renderer.localClippingEnabled=true;
+  }
+};
+
+window.setZoom = function(val){
+  const z = val/4;
+  camera.position.setLength(z);
+  document.getElementById('zoomVal').textContent=(12/val).toFixed(1)+'×';
+  document.getElementById('zoomLabel').textContent=(12/val).toFixed(1)+'×';
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  ORBIT CONTROLS (manual)
+// ─────────────────────────────────────────────────────────────────────────────
+let isDragging=false, lastX=0, lastY=0;
+let rotX=0.25, rotY=0;
+
+canvas.addEventListener('mousedown',e=>{isDragging=true;lastX=e.clientX;lastY=e.clientY});
+window.addEventListener('mouseup',()=>isDragging=false);
+window.addEventListener('mousemove',e=>{
+  if(!isDragging)return;
+  rotY+=(e.clientX-lastX)*0.008;
+  rotX+=(e.clientY-lastY)*0.006;
+  rotX=Math.max(-1.2,Math.min(1.2,rotX));
+  lastX=e.clientX;lastY=e.clientY;
+});
+canvas.addEventListener('wheel',e=>{
+  e.preventDefault();
+  const len=camera.position.length();
+  camera.position.setLength(Math.max(1.2,Math.min(7,len+e.deltaY*0.005)));
+},{passive:false});
+
+// Touch
+canvas.addEventListener('touchstart',e=>{isDragging=true;lastX=e.touches[0].clientX;lastY=e.touches[0].clientY},{passive:true});
+canvas.addEventListener('touchend',()=>isDragging=false);
+canvas.addEventListener('touchmove',e=>{
+  if(!isDragging)return;
+  rotY+=(e.touches[0].clientX-lastX)*0.008;
+  rotX+=(e.touches[0].clientY-lastY)*0.006;
+  lastX=e.touches[0].clientX;lastY=e.touches[0].clientY;
+},{passive:true});
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  ECG CANVAS
+// ─────────────────────────────────────────────────────────────────────────────
+const ecgCanvas=document.getElementById('ecgCanvas');
+const ecgCtx=ecgCanvas.getContext('2d');
+let ecgPhase=0;
+const ECG_W=176,ECG_H=50;
+
+function drawECG(){
+  const w=ecgCanvas.clientWidth||176;
+  ecgCanvas.width=w; ecgCanvas.height=ECG_H;
+  ecgCtx.clearRect(0,0,w,ECG_H);
+  ecgCtx.strokeStyle='#00f5a0';
+  ecgCtx.lineWidth=1.5;
+  ecgCtx.shadowColor='#00f5a0';
+  ecgCtx.shadowBlur=4;
+  ecgCtx.beginPath();
+  for(let px=0;px<w;px++){
+    const t=(px/w)*4*Math.PI+ecgPhase;
+    let v=0;
+    // P wave
+    v+=0.08*Math.sin(t*2.1);
+    // QRS complex
+    const qrs=((t%(2*Math.PI))/(2*Math.PI));
+    if(qrs>0.45&&qrs<0.5) v-=0.5;
+    if(qrs>0.5&&qrs<0.52) v+=2.2;
+    if(qrs>0.52&&qrs<0.57) v-=0.4;
+    // T wave
+    v+=0.25*Math.sin((t-Math.PI)*2.2)*Math.max(0,Math.sin(t*0.7-0.5));
+    const y=ECG_H/2-v*(ECG_H/2-4);
+    px===0?ecgCtx.moveTo(px,y):ecgCtx.lineTo(px,y);
+  }
+  ecgCtx.stroke();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  VITALS ANIMATION
+// ─────────────────────────────────────────────────────────────────────────────
+function updateVitals(){
+  document.getElementById('hrVal').textContent   = (70+Math.round(Math.sin(Date.now()*0.001)*4)).toString();
+  document.getElementById('spo2Val').textContent  = (97+Math.round(Math.random()*1.5)).toString();
+  document.getElementById('icpVal').textContent   = (11+Math.round(Math.sin(Date.now()*0.0007)*2)).toString();
+}
+setInterval(updateVitals,1500);
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  ANIMATE
+// ─────────────────────────────────────────────────────────────────────────────
+let lastTime=performance.now(), frameCount=0, fps=60;
+
+function animate(){
+  requestAnimationFrame(animate);
+
+  const now=performance.now();
+  const dt=(now-lastTime)/1000;lastTime=now;
+  frameCount++;
+  if(frameCount%30===0){
+    fps=Math.round(1/dt);
+    document.getElementById('fpsLabel').textContent=fps+' FPS';
+  }
+
+  // Auto rotate + user rotation
+  brainGroup.rotation.y += 0.003 + rotY*0.01;
+  brainGroup.rotation.x = rotX*0.5;
+  rotY*=0.92;
+
+  // Camera orbit
+  const len=camera.position.length();
+  camera.position.set(
+    Math.sin(brainGroup.rotation.y)*len,
+    Math.sin(rotX*0.5)*len,
+    Math.cos(brainGroup.rotation.y)*len
+  );
+  camera.lookAt(0,0,0);
+
+  // Pulse ring on surgical marker
+  const s=1+0.3*Math.sin(now*0.005);
+  ringMesh.scale.set(s,s,s);
+  ringMesh.material.opacity=0.8-0.5*(s-1)/0.3;
+
+  // Rim light pulse
+  rimLight.intensity=1.2+0.3*Math.sin(now*0.002);
+
+  // ECG
+  ecgPhase+=0.06;
+  drawECG();
+
+  renderer.render(scene,camera);
+}
+
+onResize();
+animate();
+</script>
+</body>
+</html>

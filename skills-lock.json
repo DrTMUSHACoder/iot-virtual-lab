@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "skills": {
+    "3d-modeling": {
+      "source": "omer-metin/skills-for-antigravity",
+      "sourceType": "github",
+      "computedHash": "dd0beea41a5f5711c6a8b209bb2218340ab7afabe26147eb1560e4d26d65f7c5"
+    },
+    "ui-ux-pro-max": {
+      "source": "nextlevelbuilder/ui-ux-pro-max-skill",
+      "sourceType": "github",
+      "computedHash": "4cfe5e95a230616c17d92b44e3cd37bae543ce087a7756a446a62f77d7c58a37"
+    }
+  }
+}
