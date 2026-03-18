@@ -1,105 +1,78 @@
-# Virtual IoT Laboratory 🥽⚡
+# Virtual IoT Laboratory 🔬⚡
 
-An immersive, industry-ready WebXR 3D electronics simulation environment built with React, React Three Fiber (R3F), and `avr8js`. The Virtual IoT Laboratory allows users to freely explore a dynamic 3D engineering campus, enter a fully equipped electronics lab, and physically wire and program microcontrollers (Arduino Uno, Raspberry Pi) in Virtual Reality.
+An immersive, industry-ready **WebXR 3D electronics simulation** environment built with React, React Three Fiber (R3F), and `avr8js`. The Virtual IoT Laboratory allows users to freely explore a dynamic 3D engineering campus, enter a fully equipped electronics lab, and physically wire and program microcontrollers (Arduino Uno, Raspberry Pi) in Virtual Reality.
+
+[![Netlify Status](https://api.netlify.com/api/v1/sites/4c86ed87-ecb4-4156-b4c6-e954590ee96b/deploy-status.png)](https://app.netlify.com/sites/4c86ed87-ecb4-4156-b4c6-e954590ee96b/deploys)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+---
 
 ## 🌟 Key Features
 
-- **Immersive 3D Environments**: Explore both an interactive interior electronics lab and a procedural exterior college campus with dynamic golden-hour lighting, ambient soundscapes, and scattered educational elements.
-- **Physical Electronics Engine**: Features a deterministic NetGraph topology engine running inside a Web Worker. Circuits evaluate realistically, and code executes on an emulated Arduino CPU (`avr8js`) at a stable 60Hz.
-- **WebXR Native Controls**: Full support for VR headsets with intuitive grab-and-snap mechanics, wire patching, and free locomotion.
-- **LabMate Holographic AI**: An event-driven, spatial-audio holographic assistant that provides guided instructions, component scanning, and error suggestions using the Web Speech API.
-- **Visual Circuit Diagnostics**: Animated electron flow visualizations and glowing wire overlays provide instant feedback on voltage state, data transmission, and active circuits.
-- **Holographic Panels**: Built-in 3D UI for managing simulations, debugging controllers, tracking experiment guides, and managing component toolboxes.
+- **🔋 Physical Electronics Engine**: Features a deterministic **NetGraph topology engine** running inside a Web Worker. Circuits evaluate realistically with Ohm's law voltage propagation.
+- **📟 Instruction-Level Emulation**: Code executes on an emulated **Arduino CPU (avr8js)** at a stable 60Hz. Support for real UART serial communication.
+- **🥽 WebXR Native Controls**: Full support for VR headsets with intuitive grab-and-snap mechanics, wire patching, and free locomotion.
+- **🤖 LabMate Holographic AI**: An event-driven, spatial-audio holographic assistant that provides guided instructions and error suggestions.
+- **📈 Visual Circuit Diagnostics**: Animated electron flow visualizations and glowing wire overlays provide instant feedback on voltage state and active circuits.
+- **🏗️ Immersive 3D Environment**: Explore a high-fidelity lab room with dynamic lighting and PBR materials.
 
 ---
 
-## 🏗️ What the Project Contains
+## 🏗️ Hardware Library
 
-### 1. Hardware Library
+The laboratory comes equipped with:
 - **Microcontrollers**: Arduino Uno R3, Raspberry Pi 4 Model B
-- **Prototyping**: Standard Half-Size Breadboard
-- **Passive Components**: Resistors, LEDs (Multiple colors), Tactile Push Buttons, Switches
-- **Sensors & Actuators**: DHT11 Temperature/Humidity Sensor, Piezo Buzzer
-
-### 2. Core Architecture
-- **`src/components/`**: Handles all 3D mesh rendering, lighting, locational logic, and XR interactions (React Three Fiber).
-- **`src/services/`**: The backbone of the simulation logic.
-  - `Simulator.ts` & `simulation.worker.ts`: Offloads WebAssembly AVR code execution and NetGraph logic to a background thread to maintain stable 90-FPS VR visual performance.
-  - `VoiceService.ts`: AI assistant narration and speech queuing.
-  - `AudioService.ts`: Real-time synthesized spatial UI and mechanical sound effects.
-- **`src/store/useLabStore.ts`**: Zustand global state manager handling UI states, wires, components, and active experiments.
+- **Prototyping**: Standard Half-Size Breadboard (830 tie points)
+- **Passive Components**: Resistors (multiple values), LEDs, Tactile Push Buttons, Switches, Capacitors
+- **Sensors & Actuators**: DHT11 Temp/Humidity Sensor, Piezo Buzzer, Servo SG90, DC Motor, Ultrasonic Sensor (HC-SR04), Light Sensor (LDR), Gas Sensor (MQ)
+- **Displays**: LCD 16×2, 7-Segment Display
 
 ---
 
-## 🎮 Controls
+## 🛠️ Architecture Overview
 
-### VR Headset Controls (Oculus / WebXR Standard)
-- **Left Thumbstick**: Smooth continuous locomotion (walking).
-- **Right Thumbstick**: Snap turning (45-degree increments).
-- **Grip Button (Squeeze)**: Grab, lift, and move components. Releasing the grip drops the item, automatically snapping it to the nearest breadboard hole or lab bench surface.
-- **Trigger Button (Select)**: 
-  - In **Move Mode**: Interact with UI panels and buttons.
-  - In **Scan/Inspect Mode**: Point at any component and squeeze the trigger to have LabMate verbally explain what the component is.
-  - In **Wire Mode**: Tap a component's pin to start a wire. Tap another pin to finalize the connection.
-- **Menu/Y Button**: Cancels a pending wire that is attached to your hand, or turns off Wiring mode.
+The platform is designed for high-performance simulation without blocking the UI thread:
 
-### Desktop Controls (Fallback)
-- **Left Click & Drag**: Orbit the camera or move objects around the bench.
-- **Shift + Click & Drag**: Rotate a grabbed component freely in the XY plane.
-- **Alt + Click & Drag**: Rotate a grabbed component around its Z axis.
-- **Keyboard Shortcuts**:
-  - `M`: Toggle **MOVE** Mode (Normal grabbing).
-  - `W`: Toggle **WIRE** Mode (Click pins to connect wires).
-  - `I` / `S`: Toggle **INSPECT/SCAN** Mode.
-  - `Esc`: Cancel a pending wire.
-
----
-
-## 🔬 List of Built-In Experiments
-
-The laboratory comes with a series of guided, interactive experiments built directly into the Holo-panels, designed to take users from basic electronics to sensor integration.
-
-1. **Digital LED Blink (Arduino)**
-   - **Goal**: The "Hello World" of electronics. Learn to connect an LED, understand polarity (Anode/Cathode), and use a current-limiting resistor to safely blink an LED using Arduino Pin 13.
-2. **Traffic Light Controller (Arduino)**
-   - **Goal**: Simulate a real-world intersection using Red, Yellow, and Green LEDs controlled by sequential timing logic and independent pin outputs.
-3. **PWM Potentiometer Dimmer (Arduino)**
-   - **Goal**: Understand Pulse Width Modulation (PWM) and Analog Inputs by using a potentiometer to smoothly dim and brighten an LED.
-4. **Button & Digital Logic (Arduino)**
-   - **Goal**: Learn how to read digital input devices. Wire a tactile push button and use it to execute conditional logic (turning on an LED when pressed).
-5. **Raspberry Pi GPIO Control**
-   - **Goal**: Shift platforms to the Raspberry Pi 4. Learn standard 40-pin header mapping and execute a Python-style digital blink logic cycle.
-6. **RPi Button Input**
-   - **Goal**: Continue learning RPi GPIO by taking active 3.3v input from a push button to control software states.
-7. **DHT11 Environmental Sensor Integration (Arduino)**
-   - **Goal**: Advance to digital data packages. Wire up a 3-pin DHT11 module, capture Temperature and Humidity data over a one-wire serial protocol, and transmit the readings back to the Virtual Serial Monitor.
+- **Main Thread**: React UI + React Three Fiber (R3F) Canvas + WebXR interaction.
+- **Web Worker**: Background simulation of MCU instructions and the Electrical Engine.
+- **Zustand Store**: Centralized reactive state for all components, wires, and simulation signals.
 
 ---
 
 ## 🚀 Getting Started Locally
 
-To run the application natively on your development machine:
+```bash
+# 1. Clone the repository
+git clone https://github.com/DrTMUSHACoder/iot-virtual-lab.git
+cd iot-virtual-lab
 
-\`\`\`bash
-# 1. Install Dependencies
+# 2. Install dependencies
 npm install
 
-# 2. Run the Vite Dev Server
+# 3. Start the dev server (HTTPS enabled)
 npm run dev
-\`\`\`
+```
 
-Access the project at `http://localhost:5173`. We highly recommend using a WebXR-compatible browser (like Google Chrome or the Meta Quest Browser) if entering Immersive VR mode.
+> **Note:** HTTPS is required for WebXR features. The project uses `basicSsl`, so you may need to bypass the browser's certificate warning during development.
 
-## 🛠️ Build & Deployment
+---
 
-The project handles heavy 3D assets and Worker scripts. When deploying a production bundle, Vite will chunk assets accordingly.
+## 📦 Deployment
 
-\`\`\`bash
-# Build for production
-npm run build
+### To Render.com
+This project is pre-configured with a `render.yaml` Blueprint.
+1. Connect your GitHub repository to **Render.com**.
+2. Create a new **Static Site**.
+3. Render will automatically detect the settings from `render.yaml`.
 
-# Preview production build locally
-npm run preview
-\`\`\`
+### To Netlify
+The project includes a `netlify.toml` for seamless deployment.
+- **Build Command**: `npm run build`
+- **Publish Directory**: `dist`
 
-> *Currently deployed live to Netlify!*
+---
+
+## 📜 License
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+
+Developed with ❤️ by **Dr. TMUSHACoder**

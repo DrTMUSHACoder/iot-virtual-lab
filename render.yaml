@@ -1,0 +1,14 @@
+services:
+  - type: static
+    name: virtual-iot-lab
+    env: static
+    buildCommand: npm run build
+    staticPublishPath: ./dist
+    headers:
+      - path: /*
+        name: Permissions-Policy
+        value: xr-spatial-tracking=(self)
+    routes:
+      - type: rewrite
+        from: /*
+        to: /index.html
